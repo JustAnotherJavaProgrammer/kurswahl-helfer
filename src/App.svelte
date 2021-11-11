@@ -1,11 +1,34 @@
 <script lang="ts">
+  import FileLoader from "./lib/FileLoader.svelte";
   import Home from "./lib/Home.svelte";
   import Navbar from "./lib/Navbar.svelte";
+  import { fly } from "svelte/transition";
+
+  let state = 0;
+
+  function leaveHome() {
+    state = 1;
+  }
 </script>
 
 <main>
   <Navbar />
-  <article class="content"><Home /></article>
+  <article class="content">
+    {#if state < 1}
+      <div
+        out:fly={{
+          duration: 500,
+          x: -document.documentElement.clientWidth / 3,
+        }}
+      >
+        <Home on:moveToNext={leaveHome} />
+      </div>
+    {:else if state < 2}
+      <div        in:fly={{ duration: 500, x: document.documentElement.clientWidth / 3 }}>
+        <FileLoader />
+      </div>
+    {/if}
+  </article>
 </main>
 
 <style>
@@ -27,7 +50,7 @@
   }
 
   :global(#app) {
-    height:100%;
+    height: 100%;
   }
 
   main {
@@ -49,9 +72,10 @@
     order: 0;
     flex: 1 1 auto;
     align-self: auto;
+    padding: 1em;
   }
 
-  :global(button) {
+  :global(button, .btn) {
     background: var(--light-blue);
     color: white;
     border: medium solid var(--dark-green);
@@ -62,6 +86,14 @@
     font-size: 1em;
     cursor: pointer;
     transition: all 0.2s;
+  }
+
+  :global(.btn-right::after) {
+    content: "\f1df";
+    font-family: "Material Icons Round";
+    margin-left: 0.5em;
+    font-size: 1.1em;
+    vertical-align: text-top;
   }
 
   :global(button:hover) {

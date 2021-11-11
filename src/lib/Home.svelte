@@ -12,7 +12,7 @@
   Dieser Assistent wird sie durch die Zuteilung der Kurse begleiten.<br />
   Klicken Sie auf "Start", um zu beginnen.
 </p>
-<button on:click={next}>Start</button>
+<button class="btn-right" on:click={next}>Start</button>
 
 <style>
   

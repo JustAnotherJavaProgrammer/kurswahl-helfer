@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [svelte(),
     ViteFonts({
       google: {
-        families: ["Montserrat", "Merriweather Sans"],
+        families: ["Montserrat", "Merriweather Sans", "Material Icons Round"],
       }
     })],
 })

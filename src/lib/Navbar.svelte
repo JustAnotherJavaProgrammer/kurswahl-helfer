@@ -1,7 +1,7 @@
 <script type="ts">
 </script>
 
-<nav>Some text</nav>
+<nav>Kurswahl-Helfer</nav>
 
 <style>
     nav {
