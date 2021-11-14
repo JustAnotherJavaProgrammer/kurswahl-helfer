@@ -1,45 +1,46 @@
 <script type="ts">
-    import { createEventDispatcher } from "svelte";
+    // import { createEventDispatcher } from "svelte";
+    import UploadButton from "./UploadButton.svelte";
 
-    const dispatch = createEventDispatcher();
-    let input: HTMLInputElement;
-    let button: HTMLButtonElement;
-    let errorMessage: HTMLSpanElement;
+    // const dispatch = createEventDispatcher();
+    // let input: HTMLInputElement;
+    // let button: HTMLButtonElement;
+    // let errorMessage: HTMLSpanElement;
 
-    function openFileSelectionDialog() {
-        if (input) input.click();
-    }
+    // function openFileSelectionDialog() {
+    //     if (input) input.click();
+    // }
 
-    function preventDefaultPropagation(e: DragEvent) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    // function preventDefaultPropagation(e: DragEvent) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    // }
 
-    function onFileDrop(event: Event) {
-        preventDefaultPropagation(event as DragEvent);
-        loadFile(event);
-    }
+    // function onFileDrop(event: Event) {
+    //     preventDefaultPropagation(event as DragEvent);
+    //     loadFile(event);
+    // }
 
-    function loadFile(event: Event) {
-        const file = (event.target as HTMLInputElement).files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                dispatch("file-loaded", reader.result);
-            };
-            reader.onerror = () => {
-                setDisabled(false);
-                if (errorMessage) errorMessage.classList.remove("hidden");
-            };
-            reader.readAsText(file, "windows-1252");
-            setDisabled(true);
-        }
-    }
+    // function loadFile(event: Event) {
+    //     const file = (event.target as HTMLInputElement).files[0];
+    //     if (file) {
+    //         const reader = new FileReader();
+    //         reader.onload = () => {
+    //             dispatch("file-loaded", reader.result);
+    //         };
+    //         reader.onerror = () => {
+    //             setDisabled(false);
+    //             if (errorMessage) errorMessage.classList.remove("hidden");
+    //         };
+    //         reader.readAsText(file, "windows-1252");
+    //         setDisabled(true);
+    //     }
+    // }
 
-    function setDisabled(disabled: boolean) {
-        if (input) input.disabled = disabled;
-        if (button) button.disabled = disabled;
-    }
+    // function setDisabled(disabled: boolean) {
+    //     if (input) input.disabled = disabled;
+    //     if (button) button.disabled = disabled;
+    // }
 </script>
 
 <section id="outer" class="limited-width">
@@ -58,7 +59,7 @@
         Sämtliche Datenverarbeitung findet auf Ihrem Gerät statt. Es werden keine
         Daten dauerhaft gespeichert oder an Server gesendet.
     </section>
-    <span>
+    <!-- <span>
         <input
             type="file"
             accept=".csv"
@@ -77,20 +78,22 @@
             >Beim Laden der Datei ist ein Fehler aufgetreten. Bitte versuchen
             Sie es erneut.</span
         >
-    </span>
+    </span> -->
+    <UploadButton textFormat="windows-1252" accept=".csv" on:file-loaded />
 </section>
 
 <style>
     #outer {
         display: flex;
         flex-direction: column;
+        align-items: center;
     }
 
-    button {
+    /* button {
         align-self: center;
     }
 
     input {
         display: none;
-    }
+    } */
 </style>

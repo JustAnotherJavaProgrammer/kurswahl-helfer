@@ -1,3 +1,10 @@
+<script context="module" lang="ts">
+  export type AppContext = {
+    startAssignment: (data: AnnotatedData) => void;
+    goToOptions: (raw: string[][]) => void;
+  };
+</script>
+
 <script lang="ts">
   import FileLoader from "./lib/FileLoader.svelte";
   import Home from "./lib/Home.svelte";
@@ -8,6 +15,9 @@
   import LoadingScreen from "./lib/LoadingScreen.svelte";
   import Options from "./lib/Options.svelte";
   import Modal from "svelte-simple-modal";
+  import { getContext, setContext } from "svelte";
+  import { AnnotatedData, importData } from "./collectAnnotatedData";
+  import LoadingSaveOptions from "./lib/LoadingSaveOptions.svelte";
 
   const transitionInOptions = {
     duration: 250,
@@ -21,6 +31,7 @@
 
   let state = 0;
   let rawData: string[][] = null;
+  let annotatedData: AnnotatedData = null;
 
   function leaveHome() {
     state = 1;
@@ -38,6 +49,26 @@
         leaveHome();
       });
   }
+
+  function startAssignment(data: AnnotatedData) {
+    rawData = null;
+    annotatedData = data;
+    state = 4;
+  }
+
+  function showJsonOptions(json: string, modalContext: any) {
+    const data = importData(json);
+    modalContext.show(LoadingSaveOptions, { data });
+  }
+
+  setContext("kurswahl-helfer-triggers", {
+    startAssignment,
+    goToOptions: (raw: string[][]) => {
+      rawData = raw;
+      annotatedData = null;
+      state = 3;
+    },
+  });
 </script>
 
 <main>
@@ -46,7 +77,16 @@
     <article class="content">
       {#if state < 1}
         <div out:fly={transitionOutOptions}>
-          <Home on:moveToNext={leaveHome} />
+          <Home
+            on:moveToNext={leaveHome}
+            on:save-loaded={(event) => {
+              // Just another hacky workaround
+              //@ts-ignore
+              getContext("simple-modal").show(LoadingSaveOptions, {
+                annotatedData: importData(event.detail),
+              });
+            }}
+          />
         </div>
       {:else if state < 2}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
@@ -61,6 +101,12 @@
       {:else if state < 4}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
           <Options on:returnToLoader={leaveHome} {rawData} />
+        </div>
+      {:else if state < 5}
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+          <LoadingScreen>
+            <h1 slot="title">Schritt 4: Kurse zuteilen</h1>
+          </LoadingScreen>
         </div>
       {/if}
     </article>
@@ -140,7 +186,10 @@
     transition: all 0.2s;
   }
 
-  :global(.btn-right::after, .btn-upload::after, .btn-left::before) {
+  :global(.btn-right::after, .btn-upload::after, .btn-left::before, details
+      > summary.btn::before, details > summary .btn::before, details
+      > summary
+      button::before) {
     font-family: "Material Icons Round";
     font-size: 1.1em;
     vertical-align: text-top;
@@ -150,7 +199,9 @@
     margin-left: 0.5em;
   }
 
-  :global(.btn-left::before) {
+  :global(.btn-left::before, details > summary.btn::before, details
+      > summary
+      .btn::before, details > summary button::before) {
     margin-right: 0.5em;
   }
 
@@ -164,6 +215,18 @@
 
   :global(.btn-upload::after) {
     content: "\e2c6";
+  }
+
+  :global(details > summary.btn::before, details > summary .btn::before, details
+      > summary
+      button::before) {
+    content: "\e5cf";
+  }
+
+  :global(details[open] > summary.btn::before, details[open]
+      > summary
+      .btn::before, details[open] > summary button::before) {
+    content: "\e5ce";
   }
 
   :global(button:hover, .btn:hover) {

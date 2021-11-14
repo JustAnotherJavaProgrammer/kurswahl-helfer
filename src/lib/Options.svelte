@@ -11,9 +11,17 @@
         dispatch("returnToLoader");
     }
 
+    function sanityCheck() {
+        return (
+            !(rawData == null && annotatedData == null) ||
+            rawData.length < 2 ||
+            rawData[0].length == 0
+        );
+    }
+
     function checkPartOne(): boolean {
         // Check for double selections or jumps in the numbers
-        const result = !choiceNos
+        let result = !choiceNos
             .filter((no) => no > 0)
             .sort((a, b) => a - b)
             // .filter((no, i, arr) => {
@@ -39,17 +47,31 @@
                 }
                 return false;
             });
+        if (result && !choiceNos.some((no) => no > 0)) {
+            errorMessage = `Es gibt keine Erstwahl.`;
+            result = false;
+        }
         if (result) errorMessage = errAOK;
         return result;
     }
 
     function checkPartTwo(): boolean {
-        const result = !annotatedData.courses.some((course) => {
+        let result = !annotatedData.courses.some((course) => {
             if (course.minCapacity > course.maxCapacity) {
                 errorMessage = `Die minimale Auslastung von "${course.name}" liegt mit ${course.minCapacity} höher als die maximale Auslastung des Kurses von ${course.maxCapacity}.`;
                 return true;
             }
         });
+        if (
+            result &&
+            (annotatedData.courses.length == 0 ||
+                annotatedData.people.length == 0)
+        ) {
+            errorMessage = `Es gibt keine ${
+                annotatedData.courses.length == 0 ? "Kurse" : "Personen"
+            }!`;
+            result = false;
+        }
         if (result) errorMessage = errAOK;
         return result;
     }
@@ -105,7 +127,7 @@
 <article>
     <section class="width-limited">
         <h1>Schritt 3: Daten annotieren</h1>
-        {#if rawData == null && annotatedData == null}
+        {#if !sanityCheck()}
             <span class="error"
                 >Es sind keine Daten geladen. Bitte kehren gehen Sie zurück, um
                 Daten zu laden.</span
@@ -169,101 +191,103 @@
             </section>
         {/if}
     </section>
-    <div class="table-container">
-        {#if partOne}
-            <table
-                in:fade={{ delay: 400, duration: 400 }}
-                out:fade={{ duration: 400 }}
-            >
-                <thead
-                    ><tr>
-                        {#each rawData[0] as column, cIndex}
-                            <th>
-                                {column}<br />
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    bind:value={choiceNos[cIndex]}
-                                    on:change={checkPartOne}
-                                    placeholder="0"
-                                />
-                            </th>
-                        {/each}
-                    </tr></thead
+    {#if sanityCheck()}
+        <div class="table-container">
+            {#if partOne}
+                <table
+                    in:fade={{ delay: 400, duration: 400 }}
+                    out:fade={{ duration: 400 }}
                 >
-                <tbody>
-                    {#each rawData as cells, rowIndex}
-                        {#if rowIndex != 0}
-                            <tr>
-                                {#each cells as cell}
-                                    <td>{cell}</td>
-                                {/each}
-                            </tr>
-                        {/if}
-                    {/each}
-                </tbody>
-            </table>
-        {:else}
-            <table
-                in:fade={{ delay: 400, duration: 400 }}
-                out:fade={{ duration: 400 }}
-            >
-                <thead>
-                    <tr>
-                        <th>Kursname</th>
-                        <th>min. Belegung</th>
-                        <th>max. Belegung</th>
-                        {#each annotatedData.choiceIndices as choiceNo, i}
-                            <th>{i + 1}. Wahl</th>
+                    <thead
+                        ><tr>
+                            {#each rawData[0] as column, cIndex}
+                                <th>
+                                    {column}<br />
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        bind:value={choiceNos[cIndex]}
+                                        on:change={checkPartOne}
+                                        placeholder="0"
+                                    />
+                                </th>
+                            {/each}
+                        </tr></thead
+                    >
+                    <tbody>
+                        {#each rawData as cells, rowIndex}
+                            {#if rowIndex != 0}
+                                <tr>
+                                    {#each cells as cell}
+                                        <td>{cell}</td>
+                                    {/each}
+                                </tr>
+                            {/if}
                         {/each}
-                    </tr>
-                </thead>
-                <tbody>
-                    {#each annotatedData.courses as course}
+                    </tbody>
+                </table>
+            {:else}
+                <table
+                    in:fade={{ delay: 400, duration: 400 }}
+                    out:fade={{ duration: 400 }}
+                >
+                    <thead>
                         <tr>
-                            <td>{course.name}</td>
-                            <td>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="500"
-                                    bind:value={course.minCapacity}
-                                    on:change={checkPartTwo}
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="500"
-                                    bind:value={course.maxCapacity}
-                                    on:change={checkPartTwo}
-                                />
-                            </td>
-                            {#each course.choices as indexList}
-                                <td>{indexList.length}</td>
+                            <th>Kursname</th>
+                            <th>min. Belegung</th>
+                            <th>max. Belegung</th>
+                            {#each annotatedData.choiceIndices as choiceNo, i}
+                                <th>{i + 1}. Wahl</th>
                             {/each}
                         </tr>
-                    {/each}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3">Summe</th>
-                        {#each annotatedData.choiceIndices as choiceNo, i}
-                            <th
-                                >{annotatedData.courses.reduce(
-                                    (prev, currVal) =>
-                                        prev + currVal.choices[i].length,
-                                    0
-                                )}</th
-                            >
+                    </thead>
+                    <tbody>
+                        {#each annotatedData.courses as course}
+                            <tr>
+                                <td>{course.name}</td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="500"
+                                        bind:value={course.minCapacity}
+                                        on:change={checkPartTwo}
+                                    />
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="500"
+                                        bind:value={course.maxCapacity}
+                                        on:change={checkPartTwo}
+                                    />
+                                </td>
+                                {#each course.choices as indexList}
+                                    <td>{indexList.length}</td>
+                                {/each}
+                            </tr>
                         {/each}
-                    </tr>
-                </tfoot>
-            </table>
-        {/if}
-    </div>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3">Summe</th>
+                            {#each annotatedData.choiceIndices as choiceNo, i}
+                                <th
+                                    >{annotatedData.courses.reduce(
+                                        (prev, currVal) =>
+                                            prev + currVal.choices[i].length,
+                                        0
+                                    )}</th
+                                >
+                            {/each}
+                        </tr>
+                    </tfoot>
+                </table>
+            {/if}
+        </div>
+    {/if}
     <!-- {choiceNos.toString()} -->
 </article>
 

@@ -1,44 +1,40 @@
-<script type="ts">
+<script lang="ts">
     import type { AppContext } from "src/App.svelte";
-
     import type { AnnotatedData } from "src/collectAnnotatedData";
     import { getContext } from "svelte";
-    import { exportData as exportAnnotatedData } from "../collectAnnotatedData";
+
+    const { goToOptions, startAssignment } = getContext(
+        "kurswahl-helfer-triggers"
+    ) as AppContext;
     const { close } = getContext("simple-modal");
 
     export let annotatedData: AnnotatedData;
 
-    function exportData() {
-        exportAnnotatedData(
-            annotatedData,
-            "Kurswahl-Helfer_Zwischenstand.json"
-        );
+    function options() {
+        close();
+        goToOptions(annotatedData.rawData);
     }
 
-    const { startAssignment } = getContext(
-        "kurswahl-helfer-triggers"
-    ) as AppContext;
-    function triggerAssignment() {
+    function assign() {
         close();
         startAssignment(annotatedData);
     }
 </script>
 
 <section>
-    <h1>Bevor es weiter geht...</h1>
+    <h1>Wie möchten Sie fortfahren?</h1>
     <p>
-        Das Zuteilen der Kurse kann einige Zeit in Anspruch nehmen. Deshalb
-        empfehlen wir Ihnen, Ihren aktuellen Arbeitsstand zwischenzuspeichern.<br
-        />So können Sie die Berechnung auch später durchführen oder mit den
-        gleichen Einstellungen wiederholen, sollte ein Fehler auftreten.
+        Die Daten wurden erfolgreich geladen. Sie haben nun die Möglichkeit, die
+        bereits vorgenommenen Einstellungen aus Schritt 3 (Daten annotieren) zu
+        verwerfen und dort zu beginnen, oder die Zuteilung der Kurse mit den
+        gespeicherten Einstellungen jetzt zu starten.<br />
+        Die Zuteilung der Kurse kann einige Zeit in Anspruch nehmen.
     </p>
     <b> Möchten Sie jetzt Zwischenspeichern? </b>
     <p class="button-list">
-        <button class="btn-save" on:click={exportData}>Zwischenspeichern</button
+        <button class="btn-save" on:click={options}>Erneut konfigurieren</button
         >
-        <button class="btn-right" on:click={triggerAssignment}
-            >Kurse zuteilen</button
-        >
+        <button class="btn-right" on:click={assign}>Kurse zuteilen</button>
     </p>
 </section>
 

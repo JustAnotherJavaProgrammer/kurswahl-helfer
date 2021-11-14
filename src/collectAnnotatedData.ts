@@ -48,6 +48,14 @@ export function exportData(data: AnnotatedData, fileName: string) {
     a.href = url;
     a.download = fileName;
     a.click();
+    URL.revokeObjectURL(url);
+}
+
+export function importData(json: string): AnnotatedData {
+    const data = JSON.parse(json) as {type: number, data: AnnotatedData};
+    if (data.type != 0)
+        throw new Error('Invalid file type');
+    return data.data;
 }
 
 export type AnnotatedData = {
