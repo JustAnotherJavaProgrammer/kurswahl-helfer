@@ -1,8 +1,9 @@
 <script type="ts">
     import type { AnnotatedData } from "src/collectAnnotatedData";
     import collect from "../collectAnnotatedData";
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, getContext } from "svelte";
     import { fade } from "svelte/transition";
+    import SaveWarning from "./SaveWarning.svelte";
 
     const errAOK = "Alles in Ordnung!";
     const dispatch = createEventDispatcher();
@@ -64,6 +65,13 @@
     function goBackToPartOne() {
         partOne = true;
         checkPartOne();
+    }
+
+    const { open } = getContext("simple-modal");
+    function showWarningBeforeContinue() {
+        if (checkPartTwo) {
+            open(SaveWarning, { annotatedData });
+        }
     }
 
     export let annotatedData: AnnotatedData = null;
@@ -154,7 +162,8 @@
                     <button
                         class="btn-right"
                         disabled={errorMessage !== errAOK}
-                        on:click={goToPartTwo}>Kurse zuteilen</button
+                        on:click={showWarningBeforeContinue}
+                        >Kurse zuteilen</button
                     >
                 </div>
             </section>

@@ -7,6 +7,7 @@
   import parseCSV from "./csvParser";
   import LoadingScreen from "./lib/LoadingScreen.svelte";
   import Options from "./lib/Options.svelte";
+  import Modal from "svelte-simple-modal";
 
   const transitionInOptions = {
     duration: 250,
@@ -41,27 +42,29 @@
 
 <main>
   <Navbar />
-  <article class="content">
-    {#if state < 1}
-      <div out:fly={transitionOutOptions}>
-        <Home on:moveToNext={leaveHome} />
-      </div>
-    {:else if state < 2}
-      <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-        <FileLoader on:file-loaded={goToOptions} />
-      </div>
-    {:else if state < 3}
-      <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-        <LoadingScreen>
-          <h1 slot="title">Schritt 2: Extrahiere Daten aus Datei...</h1>
-        </LoadingScreen>
-      </div>
-    {:else if state < 4}
-      <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-        <Options on:returnToLoader={leaveHome} rawData={rawData} />
-      </div>
-    {/if}
-  </article>
+  <Modal>
+    <article class="content">
+      {#if state < 1}
+        <div out:fly={transitionOutOptions}>
+          <Home on:moveToNext={leaveHome} />
+        </div>
+      {:else if state < 2}
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+          <FileLoader on:file-loaded={goToOptions} />
+        </div>
+      {:else if state < 3}
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+          <LoadingScreen>
+            <h1 slot="title">Schritt 2: Extrahiere Daten aus Datei...</h1>
+          </LoadingScreen>
+        </div>
+      {:else if state < 4}
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+          <Options on:returnToLoader={leaveHome} {rawData} />
+        </div>
+      {/if}
+    </article>
+  </Modal>
 </main>
 
 <style>
@@ -80,6 +83,7 @@
     --magic-magenta: #b95f89;
     --orange: #f26419;
     --dark-blue: #11aae1;
+    --dark-orange: #d4520c;
     height: 100%;
     max-height: 100%;
     max-width: 100%;

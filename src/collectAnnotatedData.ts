@@ -40,6 +40,16 @@ function empty2DArray(length: number) {
     return arr;
 }
 
+export function exportData(data: AnnotatedData, fileName: string) {
+    const json = JSON.stringify({type: 0, data});
+    const blob = new Blob([json], { type: 'text/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+}
+
 export type AnnotatedData = {
     rawData: string[][],
     choiceIndices: number[],
