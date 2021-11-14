@@ -81,6 +81,7 @@
             on:moveToNext={leaveHome}
             on:save-loaded={(event) => {
               // Just another hacky workaround
+              // FIXME: This is the wrong hacky workaround for the job
               //@ts-ignore
               getContext("simple-modal").show(LoadingSaveOptions, {
                 annotatedData: importData(event.detail),
