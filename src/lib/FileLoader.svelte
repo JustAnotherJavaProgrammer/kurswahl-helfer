@@ -26,7 +26,6 @@
             const reader = new FileReader();
             reader.onload = () => {
                 dispatch("file-loaded", reader.result);
-                console.log(reader.result);
             };
             reader.onerror = () => {
                 setDisabled(false);

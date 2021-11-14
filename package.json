@@ -20,6 +20,7 @@
     "vite-plugin-fonts": "^0.2.2"
   },
   "dependencies": {
-    "simple-web-worker": "^1.2.0"
+    "simple-web-worker": "^1.2.0",
+    "svelte-simple-modal": "^1.1.1"
   }
 }

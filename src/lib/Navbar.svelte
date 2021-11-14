@@ -14,5 +14,6 @@
         background-color: var(--light-blue);
         color: white;
         text-align: left;
+        /* position: sticky; */
     }
 </style>

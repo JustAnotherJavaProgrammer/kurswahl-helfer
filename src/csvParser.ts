@@ -35,5 +35,5 @@ export default function parse(csv: string, separator = ","): string[][] {
         cells.push(currentCell);
         return cells;
         // The code above was created by GitHub Copilot. Thanks, Copilot!
-    });
+    }).filter(line => line.some(cell => cell.length > 0));
 }

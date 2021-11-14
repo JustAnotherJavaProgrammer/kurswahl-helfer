@@ -6,6 +6,7 @@
   import ParallelRunner from "simple-web-worker";
   import parseCSV from "./csvParser";
   import LoadingScreen from "./lib/LoadingScreen.svelte";
+  import Options from "./lib/Options.svelte";
 
   const transitionInOptions = {
     duration: 250,
@@ -18,7 +19,7 @@
   };
 
   let state = 0;
-  let rawData: string[][];
+  let rawData: string[][] = null;
 
   function leaveHome() {
     state = 1;
@@ -55,8 +56,10 @@
           <h1 slot="title">Schritt 2: Extrahiere Daten aus Datei...</h1>
         </LoadingScreen>
       </div>
-      {:else if  state < 4}
-        TODO: create options page
+    {:else if state < 4}
+      <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+        <Options on:returnToLoader={leaveHome} rawData={rawData} />
+      </div>
     {/if}
   </article>
 </main>
@@ -66,6 +69,7 @@
     padding: 0;
     margin: 0;
     height: 100%;
+    max-height: 100%;
   }
 
   :root {
@@ -77,10 +81,18 @@
     --orange: #f26419;
     --dark-blue: #11aae1;
     height: 100%;
+    max-height: 100%;
+    max-width: 100%;
   }
+
+  /* :global(body) {
+    scrollbar-gutter: stable both-edges;;
+  } */
 
   :global(#app) {
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   main {
@@ -91,11 +103,13 @@
 
     display: flex;
     flex-direction: column;
-    -ms-flex-wrap: nowrap;
     flex-wrap: nowrap;
     justify-content: center;
     align-content: stretch;
     align-items: center;
+    flex-shrink: 1;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .content {
@@ -103,6 +117,9 @@
     flex: 1 1 auto;
     align-self: auto;
     padding: 1em;
+    box-sizing: border-box;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   :global(button, .btn) {
@@ -119,15 +136,26 @@
     transition: all 0.2s;
   }
 
-  :global(.btn-right::after, .btn-upload::after) {
+  :global(.btn-right::after, .btn-upload::after, .btn-left::before) {
     font-family: "Material Icons Round";
-    margin-left: 0.5em;
     font-size: 1.1em;
     vertical-align: text-top;
   }
 
+  :global(.btn-right::after, .btn-upload::after) {
+    margin-left: 0.5em;
+  }
+
+  :global(.btn-left::before) {
+    margin-right: 0.5em;
+  }
+
   :global(.btn-right::after) {
     content: "\f1df";
+  }
+
+  :global(.btn-left::before) {
+    content: "\f1e6";
   }
 
   :global(.btn-upload::after) {
@@ -158,7 +186,7 @@
     margin-bottom: 0.3em;
   }
 
-  :global(.limited-width) {
+  :global(.limited-width, .width-limited) {
     max-width: 60em;
   }
 
