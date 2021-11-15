@@ -17,7 +17,7 @@
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
-                dispatch("file-loaded", reader.result);
+                dispatch("file-loaded", {json: reader.result, setDisabled});
             };
             reader.onerror = onError;
             reader.readAsText(file, textFormat);

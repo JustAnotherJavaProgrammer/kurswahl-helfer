@@ -15,9 +15,8 @@
   import LoadingScreen from "./lib/LoadingScreen.svelte";
   import Options from "./lib/Options.svelte";
   import Modal from "svelte-simple-modal";
-  import { getContext, setContext } from "svelte";
-  import { AnnotatedData, importData } from "./collectAnnotatedData";
-  import LoadingSaveOptions from "./lib/LoadingSaveOptions.svelte";
+  import { setContext } from "svelte";
+  import type { AnnotatedData } from "./collectAnnotatedData";
 
   const transitionInOptions = {
     duration: 250,
@@ -56,11 +55,6 @@
     state = 4;
   }
 
-  function showJsonOptions(json: string, modalContext: any) {
-    const data = importData(json);
-    modalContext.show(LoadingSaveOptions, { data });
-  }
-
   setContext("kurswahl-helfer-triggers", {
     startAssignment,
     goToOptions: (raw: string[][]) => {
@@ -79,14 +73,6 @@
         <div out:fly={transitionOutOptions}>
           <Home
             on:moveToNext={leaveHome}
-            on:save-loaded={(event) => {
-              // Just another hacky workaround
-              // FIXME: This is the wrong hacky workaround for the job
-              //@ts-ignore
-              getContext("simple-modal").show(LoadingSaveOptions, {
-                annotatedData: importData(event.detail),
-              });
-            }}
           />
         </div>
       {:else if state < 2}

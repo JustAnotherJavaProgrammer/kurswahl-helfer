@@ -4,7 +4,7 @@
     import type { AnnotatedData } from "src/collectAnnotatedData";
     import { getContext } from "svelte";
     import { exportData as exportAnnotatedData } from "../collectAnnotatedData";
-    const { close } = getContext("simple-modal");
+    const { close} = getContext("simple-modal");
 
     export let annotatedData: AnnotatedData;
 
