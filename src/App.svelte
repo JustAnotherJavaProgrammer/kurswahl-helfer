@@ -36,9 +36,14 @@
     state = 1;
   }
 
-  function goToOptions(event: CustomEvent<string>) {
+  function goToOptions(
+    event: CustomEvent<{
+      json: string;
+      setDisabled: (disabled: boolean) => void;
+    }>
+  ) {
     state = 2;
-    ParallelRunner.run(parseCSV, [event.detail, ";"])
+    ParallelRunner.run(parseCSV, [event.detail.json, ";"])
       .then((raw: string[][]) => {
         rawData = raw;
         state = 3;
@@ -46,6 +51,7 @@
       .catch((e: any) => {
         console.error(e);
         leaveHome();
+        event.detail.setDisabled(false);
       });
   }
 
@@ -71,9 +77,7 @@
     <article class="content">
       {#if state < 1}
         <div out:fly={transitionOutOptions}>
-          <Home
-            on:moveToNext={leaveHome}
-          />
+          <Home on:moveToNext={leaveHome} />
         </div>
       {:else if state < 2}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>

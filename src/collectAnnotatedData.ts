@@ -68,6 +68,7 @@ export type AnnotatedData = {
 export type Course = {
     name: string,
     choices: number[][],
+    assigned?: number[],
     minCapacity: number,
     maxCapacity: number
 }
