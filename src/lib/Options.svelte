@@ -76,7 +76,7 @@
             annotatedData.courses.reduce(
                 (acc, course) => acc + course.maxCapacity,
                 0
-            ) > annotatedData.people.length
+            ) < annotatedData.people.length
         ) {
             errorMessage = "Es gibt mehr Schüler als Kursplätze.";
             result = false;
