@@ -1,4 +1,4 @@
-import type { AnnotatedData } from "./collectAnnotatedData";
+import type { AnnotatedData, Course } from "./collectAnnotatedData";
 
 export default function assignCourses(data: AnnotatedData): AnnotatedData {
     const alreadyAssigned = new Set<number>();
@@ -15,22 +15,11 @@ export default function assignCourses(data: AnnotatedData): AnnotatedData {
     purgeSet(data, alreadyAssigned);
     alreadyAssigned.clear();
     // Step 2: identify overcrowded courses
-    const overcrowded = new Map<number, number[]>(); // Map<courseIndex, personIndex>
-    for (const [i, course] of data.courses.entries()) {
-        if (course.choices[0].length > course.maxCapacity) {
-            overcrowded.set(i, []);
-        }
-    }
+    const overcrowded = getOvercrowdedCourses(data.courses);
     // Step 3: identify courses where there are too few people
-    const underpopulated = new Map<number, number[]>();
-    for (const [i, course] of data.courses.entries()) {
-        if (course.choices[0].length < course.minCapacity) {
-            underpopulated.set(i, []);
-        }
-    }
+    const underpopulated = getUnderpopulatedCourses(data.courses);
     // Step 4: identify people in overcrowded courses who have chosen an underpopulated course as their second choice
-    // TODO: implement the step described above
-    // TODO: implement the other steps required to finish the process
+    
 
     return data;
 }
@@ -49,6 +38,14 @@ function purgeSet(data: AnnotatedData, alreadyAssigned: Set<number>): AnnotatedD
         }
     }
     return data;
+}
+
+function getOvercrowdedCourses(courses: Course[]): number[] {
+    return courses.filter(course => course.choices[0].length > course.maxCapacity).map(course => courses.findIndex(c => c.name == course.name));
+}
+
+function getUnderpopulatedCourses(courses: Course[]): number[] {
+    return courses.filter(course => course.choices[0].length < course.minCapacity).map(course => courses.findIndex(c => c.name == course.name));
 }
 
 function deleteElementAt(arr: any[], index: number) {

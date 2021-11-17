@@ -71,6 +71,15 @@
                 annotatedData.courses.length == 0 ? "Kurse" : "Personen"
             }!`;
             result = false;
+        } else if (
+            result &&
+            annotatedData.courses.reduce(
+                (acc, course) => acc + course.maxCapacity,
+                0
+            ) > annotatedData.people.length
+        ) {
+            errorMessage = "Es gibt mehr Schüler als Kursplätze.";
+            result = false;
         }
         if (result) errorMessage = errAOK;
         return result;
