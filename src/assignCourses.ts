@@ -1,3 +1,4 @@
+import MultiSetPermutationIterator from "multiset-permutation";
 import type { AnnotatedData, Course } from "./collectAnnotatedData";
 
 type Constraints = {
@@ -29,6 +30,7 @@ export default function assignCourses(data: AnnotatedData): AnnotatedData {
     }
     const constraints = generateConstraints(data);
     const possibleAssignments = bruteForce(data, constraints);
+    console.log(possibleAssignments);
     return data; // TODO: create type AssignedData and allow for an array of solutions
 }
 
@@ -80,26 +82,41 @@ function generateConstraints(data: AnnotatedData): Constraints {
 
 function bruteForce(data: AnnotatedData, constraints: Constraints): { courseAssignments: number[][], quality: AssignmentQuality }[] | void {
     let counter = 0n;
-    for(const courseSizes of courseSizeGenerator(constraints)) {
-
+    const bestAssignments = [null, null, null];
+    for (const courseSizes of courseSizeGenerator(constraints)) {
+        for (const assignment of assignmentGenerator(courseSizes, constraints.students)) {
+            const obj = { courseAssignments: assignment, quality: evaluateAssignment(assignment, data) };
+            if (bestAssignments[0] == null || cmpAvgQuality(bestAssignments[0], obj.quality) > 0) {
+                bestAssignments[0] = obj;
+            }
+            if (bestAssignments[1] == null || cmpMostFirstChoices(bestAssignments[1], obj.quality) > 0) {
+                bestAssignments[1] = obj;
+            }
+            if (bestAssignments[2] == null || cmpLeastBad(bestAssignments[2], obj.quality) > 0) {
+                bestAssignments[2] = obj;
+            }
+            counter++;
+        }
     }
+    // Remove possible duplicates
+    return bestAssignments.filter((assignment, i) => i == bestAssignments.indexOf(assignment));
 }
 
 function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum">) {
-    const state = constraints.legalSizes.map(arr => 0);
+    const state = constraints.legalSizes.map(mapToZero);
     do {
         const cSizes = mapToValueAtIndex(state, constraints.legalSizes);
         const sum = cSizes.reduce(reduceToSum, 0);
         if (sum == constraints.sum) { // Check for sum criteria
             yield cSizes;
         }
-        for(let i = 0; i < state.length; i++) {
-            if(state[i]+1 < constraints.legalSizes[i].length) {
+        for (let i = 0; i < state.length; i++) {
+            if (state[i] + 1 < constraints.legalSizes[i].length) {
                 state[i]++;
                 break;
             }
-            if(state[i] == constraints.legalSizes[i].length-1) {
-                for(let j = 0; j < state.length; j++) {
+            if (state[i] == constraints.legalSizes[i].length - 1) {
+                for (let j = 0; j < state.length; j++) {
                     state[j] = 0;
                 }
                 break;
@@ -109,8 +126,29 @@ function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum
     } while (state.some(num => num != num));
 }
 
+function* assignmentGenerator(courseSizes: number[], students: number[]) {
+    const assignedIds = [];
+    for (const [size, i] of courseSizes.entries()) {
+        for (let i = 0; i < size; i++) {
+            assignedIds.push(i);
+        }
+    }
+    const permGen = new MultiSetPermutationIterator(assignedIds);
+    while (permGen.hasNext()) {
+        const arr = [];
+        for (let i = 0; i < courseSizes.length; i++) {
+            arr.push([]);
+        }
+        const permNext = permGen.next();
+        for (const [studentNo, courseId] of permNext.entries()) {
+            arr[courseId].push(students[studentNo]);
+        }
+        yield arr;
+    }
+}
+
 function evaluateAssignment(assignment: number[][], data: AnnotatedData): AssignmentQuality {
-    const gotChoice = [0, ...data.courses[0].choices.map(choice => 0)];
+    const gotChoice = [0, ...data.courses[0].choices.map(mapToZero)];
     for (const [courseId, students] of assignment.entries()) {
         for (const student of students) {
             const choiceIndex = data.people[student].choices.indexOf(courseId);
@@ -121,15 +159,47 @@ function evaluateAssignment(assignment: number[][], data: AnnotatedData): Assign
             gotChoice[gotChoice.length - 1]++;
         }
     }
-    const avg = gotChoice.reduce(reduceToSum,0) / gotChoice.length;
+    const avg = gotChoice.reduce(reduceToSum, 0) / gotChoice.length;
     return { gotChoice, avg };
 }
+
+function cmpAvgQuality(a: AssignmentQuality, b: AssignmentQuality) {
+    return a.avg - b.avg;
+}
+
+function cmpMostFirstChoices(a: AssignmentQuality, b: AssignmentQuality) {
+    for (let i = 0; i < a.gotChoice.length; i++) {
+        if (a.gotChoice[i] > b.gotChoice[i]) {
+            return -1;
+        }
+        if (b.gotChoice[i] > a.gotChoice[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+function cmpLeastBad(a: AssignmentQuality, b: AssignmentQuality) {
+    for (let i = a.gotChoice.length - 1; i <= 0; i++) {
+        if (a.gotChoice[i] < b.gotChoice[i]) {
+            return -1;
+        }
+        if (b.gotChoice[i] < a.gotChoice[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+function mapToZero() { return 0; }
+
+function mapToSelf<T>(elem: T) { return elem; }
 
 function mapToValueAtIndex<T>(indexArr: number[], referenceArr: T[][]): T[] {
     return indexArr.map((index, i) => referenceArr[i][index]);
 }
 
-function reduceToSum(acc: number, curr: number):number {
+function reduceToSum(acc: number, curr: number): number {
     return acc + curr;
 }
 

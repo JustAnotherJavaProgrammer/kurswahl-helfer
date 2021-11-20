@@ -21,7 +21,8 @@
     "vite-plugin-fonts": "^0.2.2"
   },
   "dependencies": {
-    "gpu.js": "^2.11.4",
+    "gpu.js": "^1.10.4",
+    "multiset-permutation": "^0.0.2",
     "simple-web-worker": "^1.2.0"
   }
 }

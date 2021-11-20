@@ -17,6 +17,7 @@
   import Modal from "svelte-simple-modal";
   import { setContext } from "svelte";
   import type { AnnotatedData } from "./collectAnnotatedData";
+import assignCourses from "./assignCourses";
 
   const transitionInOptions = {
     duration: 250,
@@ -59,6 +60,7 @@
     rawData = null;
     annotatedData = data;
     state = 4;
+    assignCourses(annotatedData);
   }
 
   setContext("kurswahl-helfer-triggers", {
