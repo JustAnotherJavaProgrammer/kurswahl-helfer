@@ -17,7 +17,7 @@ export default function collect(rawData: string[][], choiceNos: number[]): Annot
             if (!courses.has(row[choiceIndex])) {
                 courses.set(row[choiceIndex], generateCourse(row[choiceIndex], data.choiceIndices.length));
             }
-            courses.get(row[choiceIndex]).choices[choiceNo].push(index);
+            courses.get(row[choiceIndex]).choices[choiceNo].push(index-1);
         }
         prePeople.push(person);
     }

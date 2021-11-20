@@ -13,6 +13,7 @@ type AssignmentQuality = {
 }
 
 export default function assignCourses(data: AnnotatedData): AnnotatedData {
+    console.debug(data);
     {
         const alreadyAssigned = new Set<number>();
         // Step 1: Assign people to courses, where there definitely are enough members and not too many.
