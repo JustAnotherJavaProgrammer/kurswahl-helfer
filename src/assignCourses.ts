@@ -30,8 +30,10 @@ export default function assignCourses(data: AnnotatedData): AnnotatedData {
         alreadyAssigned.clear();
     }
     const constraints = generateConstraints(data);
-    const possibleAssignments = bruteForce(data, constraints);
-    console.log(possibleAssignments);
+    if (constraints.students.length > 0) {
+        const possibleAssignments = bruteForce(data, constraints);
+        console.debug(possibleAssignments);
+    }
     return data; // TODO: create type AssignedData and allow for an array of solutions
 }
 
@@ -85,20 +87,23 @@ function bruteForce(data: AnnotatedData, constraints: Constraints): { courseAssi
     let counter = 0n;
     const bestAssignments = [null, null, null];
     for (const courseSizes of courseSizeGenerator(constraints)) {
+        // debugger;
         for (const assignment of assignmentGenerator(courseSizes, constraints.students)) {
             const obj = { courseAssignments: assignment, quality: evaluateAssignment(assignment, data) };
-            if (bestAssignments[0] == null || cmpAvgQuality(bestAssignments[0], obj.quality) > 0) {
+            // debugger;
+            if (bestAssignments[0] == null || cmpAvgQuality(bestAssignments[0].quality, obj.quality) > 0) {
                 bestAssignments[0] = obj;
             }
-            if (bestAssignments[1] == null || cmpMostFirstChoices(bestAssignments[1], obj.quality) > 0) {
+            if (bestAssignments[1] == null || cmpMostFirstChoices(bestAssignments[1].quality, obj.quality) > 0) {
                 bestAssignments[1] = obj;
             }
-            if (bestAssignments[2] == null || cmpLeastBad(bestAssignments[2], obj.quality) > 0) {
+            if (bestAssignments[2] == null || cmpLeastBad(bestAssignments[2].quality, obj.quality) > 0) {
                 bestAssignments[2] = obj;
             }
             counter++;
         }
     }
+    // debugger;
     // Remove possible duplicates
     return bestAssignments.filter((assignment, i) => i == bestAssignments.indexOf(assignment));
 }
@@ -116,7 +121,7 @@ function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum
                 state[i]++;
                 break;
             }
-            if (state[i] == constraints.legalSizes[i].length - 1) {
+            if (i == state.length - 1 && state[i] + 1 == constraints.legalSizes[i].length) {
                 for (let j = 0; j < state.length; j++) {
                     state[j] = 0;
                 }
@@ -124,13 +129,13 @@ function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum
             }
             state[i] = 0;
         }
-    } while (state.some(num => num != num));
+    } while (state.some(num => num != 0));
 }
 
 function* assignmentGenerator(courseSizes: number[], students: number[]) {
     const assignedIds = [];
-    for (const [size, i] of courseSizes.entries()) {
-        for (let i = 0; i < size; i++) {
+    for (const [i, size] of courseSizes.entries()) {
+        for (let j = 0; j < size; j++) {
             assignedIds.push(i);
         }
     }
