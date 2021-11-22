@@ -1,5 +1,5 @@
 import MultiSetPermutationIterator from "multiset-permutation";
-import type { AnnotatedData, Course } from "./collectAnnotatedData";
+import type { AnnotatedData, Course, Person } from "./collectAnnotatedData";
 
 type Constraints = {
     sum: number,
@@ -7,12 +7,26 @@ type Constraints = {
     students: number[],
 }
 
-type AssignmentQuality = {
+export type AssignmentQuality = {
     gotChoice: number[],
     avg: number,
 }
 
-export default function assignCourses(data: AnnotatedData): AnnotatedData {
+export type CourseAssignment = number[][];
+
+export type Assignment = {
+    courseAssignments: CourseAssignment,
+    quality: AssignmentQuality,
+}
+
+export type AssignmentData = {
+    rawData: string[][],
+    courses: string[],
+    people: Pick<Person, "rawData">[],
+    assignments: Assignment[],
+}
+
+export default function assignCourses(data: AnnotatedData): AssignmentData {
     console.debug(data);
     {
         const alreadyAssigned = new Set<number>();
@@ -29,12 +43,17 @@ export default function assignCourses(data: AnnotatedData): AnnotatedData {
         purgeSet(data, alreadyAssigned);
         alreadyAssigned.clear();
     }
+    const assigendDataTemplate : Omit<AssignmentData, "assignments"> & Partial<AssignmentData> = {rawData: data.rawData, courses: data.courses.map(course => course.name), people: data.people.map(person => ({rawData: person.rawData}))};
     const constraints = generateConstraints(data);
     if (constraints.students.length > 0) {
-        const possibleAssignments = bruteForce(data, constraints);
+        let possibleAssignments = bruteForce(data, constraints);
         console.debug(possibleAssignments);
+        possibleAssignments = applyAssignments(data.courses, possibleAssignments as Assignment[]);
+        assigendDataTemplate.assignments = possibleAssignments;
+    } else {
+        // TODO: create one assignment option
     }
-    return data; // TODO: create type AssignedData and allow for an array of solutions
+    return assigendDataTemplate as AssignmentData;
 }
 
 function purgeSet(data: AnnotatedData, alreadyAssigned: Set<number>): AnnotatedData {
@@ -83,9 +102,9 @@ function generateConstraints(data: AnnotatedData): Constraints {
     return { sum, legalSizes, students };
 }
 
-function bruteForce(data: AnnotatedData, constraints: Constraints): { courseAssignments: number[][], quality: AssignmentQuality }[] | void {
+function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[] | void {
     let counter = 0n;
-    const bestAssignments = [null, null, null];
+    const bestAssignments: Assignment[] = [null, null, null];
     for (const courseSizes of courseSizeGenerator(constraints)) {
         // debugger;
         for (const assignment of assignmentGenerator(courseSizes, constraints.students)) {
@@ -153,7 +172,7 @@ function* assignmentGenerator(courseSizes: number[], students: number[]) {
     }
 }
 
-function evaluateAssignment(assignment: number[][], data: AnnotatedData): AssignmentQuality {
+function evaluateAssignment(assignment: CourseAssignment, data: AnnotatedData): AssignmentQuality {
     const gotChoice = [0, ...data.courses[0].choices.map(mapToZero)];
     for (const [courseId, students] of assignment.entries()) {
         for (const student of students) {
@@ -195,6 +214,28 @@ function cmpLeastBad(a: AssignmentQuality, b: AssignmentQuality) {
         }
     }
     return 0;
+}
+
+/**
+ * Adds already assigned courses to the list of assigned courses
+ * 
+ * Warning: This function mutates the input array
+ * @param courses The list of all available courses
+ * @param assignments A list of assigments to be made to include already assigned courses
+ */
+function applyAssignments(courses: Course[], assignments: Assignment[]): Assignment[] {
+    for (const [id, course] of courses.entries()) {
+        if (course.assigned) {
+            for (const assignment of assignments) {
+                assignment.courseAssignments[id].push(...course.assigned);
+                assignment.quality.gotChoice[0] += course.assigned.length;
+            }
+        }
+    }
+    for (const assignment of assignments) {
+        assignment.quality.avg = assignment.quality.gotChoice.reduce(reduceToSum, 0) / assignment.quality.gotChoice.length;
+    }
+    return assignments;
 }
 
 function mapToZero() { return 0; }
