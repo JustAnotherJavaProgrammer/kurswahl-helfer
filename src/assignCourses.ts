@@ -43,7 +43,7 @@ export default function assignCourses(data: AnnotatedData): AssignmentData {
         purgeSet(data, alreadyAssigned);
         alreadyAssigned.clear();
     }
-    const assigendDataTemplate : Omit<AssignmentData, "assignments"> & Partial<AssignmentData> = {rawData: data.rawData, courses: data.courses.map(course => course.name), people: data.people.map(person => ({rawData: person.rawData}))};
+    const assigendDataTemplate: Omit<AssignmentData, "assignments"> & Partial<AssignmentData> = { rawData: data.rawData, courses: data.courses.map(course => course.name), people: data.people.map(person => ({ rawData: person.rawData })) };
     const constraints = generateConstraints(data);
     if (constraints.students.length > 0) {
         let possibleAssignments = bruteForce(data, constraints);
@@ -51,7 +51,7 @@ export default function assignCourses(data: AnnotatedData): AssignmentData {
         possibleAssignments = applyAssignments(data.courses, possibleAssignments as Assignment[]);
         assigendDataTemplate.assignments = possibleAssignments;
     } else {
-        // TODO: create one assignment option
+        assigendDataTemplate.assignments = [{ quality: { gotChoice: [data.people.length], avg: 0 }, courseAssignments: data.courses.map(course => course.assigned ?? []) }];
     }
     return assigendDataTemplate as AssignmentData;
 }
