@@ -120,6 +120,9 @@ function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[]
                 bestAssignments[2] = obj;
             }
             counter++;
+            if (!self.document) {
+                postMessage({ type: 1, counter });
+            }
         }
     }
     // debugger;
@@ -262,10 +265,11 @@ function arrayFromTo(from: number, to: number): number[] {
     return arr;
 }
 
-if(!document) {
-    onmessage = (e: MessageEvent<AnnotatedData>) => {
+if (!self.document) {
+    self.onmessage = (e: MessageEvent<AnnotatedData>) => {
+        console.log("Message received");
         const data = e.data;
         const result = assignCourses(data);
-        postMessage({type: 0, result});
+        postMessage({ type: 0, result });
     };
 }

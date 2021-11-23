@@ -59,6 +59,7 @@
   }
 
   function startAssignment(data: AnnotatedData) {
+    // TODO: move to assignment progress
     rawData = null;
     annotatedData = data;
     state = 4;
@@ -68,9 +69,11 @@
         rawData = null;
         annotatedData = null;
         state = 5;
-        console.log(e.data.data);
+        console.log(e.data.result);
+      } else if (e.data.type == 1) {
       }
     });
+    assignmentWorker.postMessage(data);
   }
 
   setContext("kurswahl-helfer-triggers", {
