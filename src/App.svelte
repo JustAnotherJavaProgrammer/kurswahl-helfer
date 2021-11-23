@@ -17,7 +17,9 @@
   import Modal from "svelte-simple-modal";
   import { setContext } from "svelte";
   import type { AnnotatedData } from "./collectAnnotatedData";
-import assignCourses from "./assignCourses";
+  // import assignCourses, { AssignmentData } from "./assignCourses";
+  import AssignmentSelect from "./AssignmentSelect.svelte";
+  import AssignmentWorker from "./assignCourses?worker";
 
   const transitionInOptions = {
     duration: 250,
@@ -60,7 +62,15 @@ import assignCourses from "./assignCourses";
     rawData = null;
     annotatedData = data;
     state = 4;
-    assignCourses(annotatedData);
+    const assignmentWorker = new AssignmentWorker();
+    assignmentWorker.addEventListener("message", (e) => {
+      if (e.data.type === 0) {
+        rawData = null;
+        annotatedData = null;
+        state = 5;
+        console.log(e.data.data);
+      }
+    });
   }
 
   setContext("kurswahl-helfer-triggers", {
@@ -100,6 +110,10 @@ import assignCourses from "./assignCourses";
           <LoadingScreen>
             <h1 slot="title">Schritt 4: Kurse zuteilen</h1>
           </LoadingScreen>
+        </div>
+      {:else if state < 6}
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
+          <AssignmentSelect />
         </div>
       {/if}
     </article>

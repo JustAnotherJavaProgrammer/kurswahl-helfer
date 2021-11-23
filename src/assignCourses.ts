@@ -261,3 +261,11 @@ function arrayFromTo(from: number, to: number): number[] {
     }
     return arr;
 }
+
+if(!document) {
+    onmessage = (e: MessageEvent<AnnotatedData>) => {
+        const data = e.data;
+        const result = assignCourses(data);
+        postMessage({type: 0, result});
+    };
+}
