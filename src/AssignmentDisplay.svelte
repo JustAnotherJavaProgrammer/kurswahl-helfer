@@ -11,7 +11,6 @@
         name.toLowerCase().includes("name")
     );
 
-    console.log(assignmentData.assignments);
     if (assignmentData != null && assignmentData.assignments.length == 1)
         assignmentNo = 0;
 
@@ -23,7 +22,47 @@
         columnVisible[column] = visible;
     }
 
-    // TODO: implement sorting
+    let courseSortBy: 0 | 1;
+    let courseOrder: number[];
+    $: courseOrder = assignmentData?.courses
+        .map((name, index) => ({ name, index }))
+        .sort((a, b) => {
+            if (courseSortBy == 0) {
+                const assignments =
+                    assignmentData?.assignments.at(
+                        assignmentNo
+                    ).courseAssignments;
+                return (
+                    assignments[b.index].length - assignments[a.index].length
+                );
+            }
+            return a.name.localeCompare(b.name);
+        })
+        .map((course) => course.index);
+    let studentsSortBy: number;
+    let studentOrder: number[][];
+    console.log(assignmentData);
+    $: {
+        // console.log(studentsSortBy);
+        studentOrder = assignmentData?.assignments
+            .at(assignmentNo)
+            .courseAssignments.map((courseList) =>
+                courseList
+                    .map((studentId) => ({
+                        id: studentId,
+                        value:
+                            assignmentData?.people[studentId].rawData[
+                                studentsSortBy ?? 0
+                                // (() => {
+                                //     console.log(studentsSortBy);
+                                //     return 0;
+                                // })()
+                            ] ?? "0",
+                    }))
+                    .sort((a, b) => a.value.localeCompare(b.value))
+                    .map((student) => student.id)
+            );
+    }
 </script>
 
 <section class="outer-section">
@@ -64,9 +103,9 @@
             <div id="sorting-list">
                 <span>
                     <label for="course-order">Kurse sortieren nach: </label>
-                    <select id="course-order">
-                        <option>Kursgröße</option>
-                        <option>Kursname (alphabetisch)</option>
+                    <select id="course-order" bind:value={courseSortBy}>
+                        <option value="0" selected>Kursgröße</option>
+                        <option value="1">Kursname (alphabetisch)</option>
                     </select>
                 </span>
                 <br />
@@ -74,18 +113,21 @@
                     <label for="student-order"
                         >Kursteilnehmer sortieren nach:
                     </label>
-                    <select id="student-order">
+                    <select id="student-order" bind:value={studentsSortBy}>
                         {#each assignmentData.rawData[0] as column, columnIndex}
-                            <option value={columnIndex}>{column}</option>
+                            <option
+                                value={columnIndex}
+                                selected={columnIndex == 0}>{column}</option
+                            >
                         {/each}
                     </select>
                 </span>
             </div>
         </section>
         <h2>Kurslisten</h2>
-        {#each assignmentData.assignments[assignmentNo].courseAssignments as course, courseIndex}
+        {#each courseOrder as courseIndex}
             <h3>{assignmentData.courses[courseIndex]}</h3>
-            {#if course.length > 0}
+            {#if assignmentData.assignments[assignmentNo].courseAssignments[courseIndex].length > 0}
                 {#if columnVisible.some((visible) => visible)}
                     <table>
                         <thead>
@@ -102,7 +144,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {#each course as studentIndex}
+                            {#each studentOrder[courseIndex] as studentIndex}
                                 <tr>
                                     {#each columnVisible as visible, index}
                                         {#if visible}
@@ -116,12 +158,31 @@
                                 </tr>
                             {/each}
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Kursgröße</th>
+                                <th
+                                    colspan={Math.max(
+                                        columnVisible.reduce(
+                                            (acc, curr) => acc + (curr ? 1 : 0),
+                                            0
+                                        ) - 1,
+                                        1
+                                    )}
+                                >
+                                    {assignmentData.assignments[assignmentNo]
+                                        .courseAssignments[courseIndex].length}
+                                </th>
+                            </tr>
+                        </tfoot>
                     </table>
                 {:else}
                     <p class="info-box">
-                        Dieser Kurs hat {course.length} Teilnehmer. Bitte wählen
-                        Sie in den Anzeigeoptionen Spalten zum Anzeigen aus, um mehr
-                        Informationen zu erhalten.
+                        Dieser Kurs hat {assignmentData.assignments[
+                            assignmentNo
+                        ].courseAssignments[courseIndex].length} Teilnehmer. Bitte
+                        wählen Sie in den Anzeigeoptionen Spalten zum Anzeigen aus,
+                        um mehr Informationen zu erhalten.
                     </p>
                 {/if}
             {:else}
