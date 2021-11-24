@@ -103,21 +103,41 @@ function generateConstraints(data: AnnotatedData): Constraints {
 
 function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[] | void {
     let counter = 0n;
-    const bestAssignments: Assignment[] = [null, null, null];
+    const bestAssignments: Assignment[][] = [null, null, null];
     for (const courseSizes of courseSizeGenerator(constraints)) {
         // debugger;
         for (const assignment of assignmentGenerator(courseSizes, constraints.students)) {
             const obj = { courseAssignments: assignment, quality: evaluateAssignment(assignment, data, constraints.students.length) };
             // debugger;
-            // TODO: also add assignments of equal quality
-            if (bestAssignments[0] == null || cmpAvgQuality(bestAssignments[0].quality, obj.quality) > 0) {
-                bestAssignments[0] = obj;
+            if (bestAssignments[0] == null) {
+                bestAssignments[0] = [obj];
+            } else {
+                const cmp = cmpAvgQuality(bestAssignments[0][0].quality, obj.quality);
+                if (cmp > 0) {
+                    bestAssignments[0] = [obj];
+                } else if (cmp == 0) {
+                    bestAssignments[0].push(obj);
+                }
             }
-            if (bestAssignments[1] == null || cmpMostFirstChoices(bestAssignments[1].quality, obj.quality) > 0) {
-                bestAssignments[1] = obj;
+            if (bestAssignments[1] == null) {
+                bestAssignments[1] = [obj];
+            } else {
+                const cmp = cmpMostFirstChoices(bestAssignments[1][0].quality, obj.quality);
+                if (cmp > 0) {
+                    bestAssignments[1] = [obj];
+                } else if (cmp == 0) {
+                    bestAssignments[1].push(obj);
+                }
             }
-            if (bestAssignments[2] == null || cmpLeastBad(bestAssignments[2].quality, obj.quality) > 0) {
-                bestAssignments[2] = obj;
+            if (bestAssignments[2] == null) {
+                bestAssignments[2] = [obj];
+            } else {
+                const cmp = cmpLeastBad(bestAssignments[2][0].quality, obj.quality)
+                if (cmp > 0) {
+                    bestAssignments[2] = [obj];
+                } else if (cmp == 0) {
+                    bestAssignments[2].push(obj);
+                }
             }
             counter++;
             if (!self.document) {
@@ -127,7 +147,7 @@ function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[]
     }
     // debugger;
     // Remove possible duplicates
-    return bestAssignments.filter((assignment, i) => i == bestAssignments.indexOf(assignment));
+    return bestAssignments.flat(2).filter((assignment, i, arr) => i == arr.indexOf(assignment));
 }
 
 function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum">) {
