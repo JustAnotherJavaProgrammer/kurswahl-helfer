@@ -44,11 +44,15 @@ export function exportData(data: AnnotatedData, fileName: string) {
     const json = JSON.stringify({type: 0, data});
     const blob = new Blob([json], { type: 'text/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
+    triggerDownload(url, fileName);
+    URL.revokeObjectURL(url);
+}
+
+export function triggerDownload(url: string, fileName: string) {
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
     a.click();
-    URL.revokeObjectURL(url);
 }
 
 export function importData(json: string): AnnotatedData {

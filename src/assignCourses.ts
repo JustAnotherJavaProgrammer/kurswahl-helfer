@@ -47,8 +47,7 @@ export default function assignCourses(data: AnnotatedData): AssignmentData {
     const constraints = generateConstraints(data);
     if (constraints.students.length > 0) {
         let possibleAssignments = bruteForce(data, constraints);
-        console.debug(possibleAssignments);
-        possibleAssignments = applyAssignments(data.courses, possibleAssignments as Assignment[]);
+        possibleAssignments = applyAssignments(data.courses, possibleAssignments as Assignment[], data.people.length);
         assigendDataTemplate.assignments = possibleAssignments;
     } else {
         assigendDataTemplate.assignments = [{ quality: { gotChoice: [data.people.length], avg: 0 }, courseAssignments: data.courses.map(course => course.assigned ?? []) }];
@@ -108,8 +107,9 @@ function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[]
     for (const courseSizes of courseSizeGenerator(constraints)) {
         // debugger;
         for (const assignment of assignmentGenerator(courseSizes, constraints.students)) {
-            const obj = { courseAssignments: assignment, quality: evaluateAssignment(assignment, data) };
+            const obj = { courseAssignments: assignment, quality: evaluateAssignment(assignment, data, constraints.students.length) };
             // debugger;
+            // TODO: also add assignments of equal quality
             if (bestAssignments[0] == null || cmpAvgQuality(bestAssignments[0].quality, obj.quality) > 0) {
                 bestAssignments[0] = obj;
             }
@@ -175,7 +175,7 @@ function* assignmentGenerator(courseSizes: number[], students: number[]) {
     }
 }
 
-function evaluateAssignment(assignment: CourseAssignment, data: AnnotatedData): AssignmentQuality {
+function evaluateAssignment(assignment: CourseAssignment, data: AnnotatedData, studentsTotal: number): AssignmentQuality {
     const gotChoice = [0, ...data.courses[0].choices.map(mapToZero)];
     for (const [courseId, students] of assignment.entries()) {
         for (const student of students) {
@@ -187,7 +187,7 @@ function evaluateAssignment(assignment: CourseAssignment, data: AnnotatedData): 
             gotChoice[gotChoice.length - 1]++;
         }
     }
-    const avg = gotChoice.reduce(reduceToSum, 0) / gotChoice.length;
+    const avg = gotChoice.reduce(reduceToSumOfIndicesTimesValue, 0) / studentsTotal;
     return { gotChoice, avg };
 }
 
@@ -208,7 +208,7 @@ function cmpMostFirstChoices(a: AssignmentQuality, b: AssignmentQuality) {
 }
 
 function cmpLeastBad(a: AssignmentQuality, b: AssignmentQuality) {
-    for (let i = a.gotChoice.length - 1; i <= 0; i++) {
+    for (let i = a.gotChoice.length - 1; i >= 0; i--) {
         if (a.gotChoice[i] < b.gotChoice[i]) {
             return -1;
         }
@@ -226,7 +226,7 @@ function cmpLeastBad(a: AssignmentQuality, b: AssignmentQuality) {
  * @param courses The list of all available courses
  * @param assignments A list of assigments to be made to include already assigned courses
  */
-function applyAssignments(courses: Course[], assignments: Assignment[]): Assignment[] {
+function applyAssignments(courses: Course[], assignments: Assignment[], totalPeople: number): Assignment[] {
     for (const [id, course] of courses.entries()) {
         if (course.assigned) {
             for (const assignment of assignments) {
@@ -236,12 +236,12 @@ function applyAssignments(courses: Course[], assignments: Assignment[]): Assignm
         }
     }
     for (const assignment of assignments) {
-        assignment.quality.avg = assignment.quality.gotChoice.reduce(reduceToSum, 0) / assignment.quality.gotChoice.length;
+        assignment.quality.avg = assignment.quality.gotChoice.reduce(reduceToSumOfIndicesTimesValue, 0) / totalPeople;
     }
     return assignments;
 }
 
-function mapToZero() { return 0; }
+export function mapToZero() { return 0; }
 
 function mapToSelf<T>(elem: T) { return elem; }
 
@@ -251,6 +251,10 @@ function mapToValueAtIndex<T>(indexArr: number[], referenceArr: T[][]): T[] {
 
 function reduceToSum(acc: number, curr: number): number {
     return acc + curr;
+}
+
+function reduceToSumOfIndicesTimesValue(acc: number, curr: number, index: number): number {
+    return acc + curr * index;
 }
 
 function deleteElementAt(arr: any[], index: number) {
@@ -267,7 +271,6 @@ function arrayFromTo(from: number, to: number): number[] {
 
 if (!self.document) {
     self.onmessage = (e: MessageEvent<AnnotatedData>) => {
-        console.log("Message received");
         const data = e.data;
         const result = assignCourses(data);
         postMessage({ type: 0, result });

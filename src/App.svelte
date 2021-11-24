@@ -18,8 +18,9 @@
   import { setContext } from "svelte";
   import type { AnnotatedData } from "./collectAnnotatedData";
   // import assignCourses, { AssignmentData } from "./assignCourses";
-  import AssignmentSelect from "./AssignmentSelect.svelte";
-  import AssignmentWorker from "./assignCourses?worker";
+  import AssignmentDisplay from "./AssignmentDisplay.svelte";
+  import type { AssignmentData } from "./assignCourses";
+  import AssignmentProgress from "./lib/AssignmentProgress.svelte";
 
   const transitionInOptions = {
     duration: 250,
@@ -34,6 +35,14 @@
   let state = 0;
   let rawData: string[][] = null;
   let annotatedData: AnnotatedData = null;
+  let assignedData: AssignmentData = null;
+
+  function goToHome() {
+    rawData = null;
+    annotatedData = null;
+    assignedData = null;
+    state = 0;
+  }
 
   function leaveHome() {
     state = 1;
@@ -59,21 +68,16 @@
   }
 
   function startAssignment(data: AnnotatedData) {
-    // TODO: move to assignment progress
     rawData = null;
     annotatedData = data;
     state = 4;
-    const assignmentWorker = new AssignmentWorker();
-    assignmentWorker.addEventListener("message", (e) => {
-      if (e.data.type === 0) {
-        rawData = null;
-        annotatedData = null;
-        state = 5;
-        console.log(e.data.result);
-      } else if (e.data.type == 1) {
-      }
-    });
-    assignmentWorker.postMessage(data);
+  }
+
+  function showResults(event: CustomEvent<AssignmentData>) {
+    rawData = null;
+    assignedData = event.detail;
+    state = 5;
+    annotatedData = null;
   }
 
   setContext("kurswahl-helfer-triggers", {
@@ -91,7 +95,7 @@
   <Modal>
     <article class="content">
       {#if state < 1}
-        <div out:fly={transitionOutOptions}>
+        <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
           <Home on:moveToNext={leaveHome} />
         </div>
       {:else if state < 2}
@@ -110,13 +114,11 @@
         </div>
       {:else if state < 5}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-          <LoadingScreen>
-            <h1 slot="title">Schritt 4: Kurse zuteilen</h1>
-          </LoadingScreen>
+          <AssignmentProgress data={annotatedData} on:done={showResults} />
         </div>
       {:else if state < 6}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-          <AssignmentSelect />
+          <AssignmentDisplay on:goToHome={goToHome} assignmentData={assignedData} />
         </div>
       {/if}
     </article>
@@ -196,7 +198,7 @@
     transition: all 0.2s;
   }
 
-  :global(.btn-right::after, .btn-upload::after, .btn-left::before, details
+  :global(.btn-right::after, .btn-upload::after, .btn-left::before, .btn-home::before, details
       > summary.btn::before, details > summary .btn::before, details
       > summary
       button::before) {
@@ -209,9 +211,10 @@
     margin-left: 0.5em;
   }
 
-  :global(.btn-left::before, details > summary.btn::before, details
+  :global(.btn-left::before, .btn-home::before, details
+      > summary.btn::before, details > summary .btn::before, details
       > summary
-      .btn::before, details > summary button::before) {
+      button::before) {
     margin-right: 0.5em;
   }
 
@@ -221,6 +224,10 @@
 
   :global(.btn-left::before) {
     content: "\f1e6";
+  }
+
+  :global(.btn-home::before) {
+    content: "\e88a";
   }
 
   :global(.btn-upload::after) {
@@ -276,9 +283,19 @@
     margin: 0.2em;
   }
 
+  :global(h2) {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+  }
+
   :global(h3) {
     margin-top: 0;
     margin-bottom: 0.5em;
+  }
+
+  :global(h4) {
+    margin-top: 0;
+    margin-bottom: 0.25em;
   }
 
   :global(a) {
@@ -296,5 +313,44 @@
     padding: 0.1em;
     color: var(--fresh-yellow);
     display: inline-block;
+  }
+
+  :global(.table-container) {
+    overflow: auto;
+    max-width: 100%;
+  }
+
+  :global(table, th, td) {
+    border: 0.2em solid var(--dark-green);
+    border-collapse: collapse;
+  }
+
+  :global(th, td) {
+    padding: 0.1em;
+  }
+
+  :global(thead th) {
+    /* border-color: var(--orange);
+        border-top-color: var(--dark-green); */
+    background-color: var(--light-blue);
+    color: white;
+  }
+
+  :global(tfoot th) {
+    background-color: var(--magic-magenta);
+    color: white;
+  }
+
+  /* :global(thead > tr > th:first-child) {
+        border-left-color: var(--dark-green);
+    }
+
+    :global(thead > tr > th:last-child) {
+        border-right-color: var(--dark-green);
+    } */
+
+  :global(table) {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
   }
 </style>
