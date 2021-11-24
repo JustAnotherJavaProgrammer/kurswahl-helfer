@@ -10,4 +10,7 @@ export default defineConfig({
       families: ["Montserrat", "Merriweather Sans", "Material Icons Round"],
     }
   })],
+  build: {
+    target: ['es2020'],
+  },
 })
