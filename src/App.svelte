@@ -118,7 +118,10 @@
         </div>
       {:else if state < 6}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-          <AssignmentDisplay on:goToHome={goToHome} assignmentData={assignedData} />
+          <AssignmentDisplay
+            on:goToHome={goToHome}
+            assignmentData={assignedData}
+          />
         </div>
       {/if}
     </article>
@@ -145,6 +148,13 @@
     height: 100%;
     max-height: 100%;
     max-width: 100%;
+  }
+
+  @media (prefers-contrast: more) {
+    :root {
+      --light-blue: #108ebc;
+      --dark-blue: #08475e;
+    }
   }
 
   /* :global(body) {
