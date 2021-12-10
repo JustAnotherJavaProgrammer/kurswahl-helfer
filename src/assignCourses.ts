@@ -147,7 +147,7 @@ function bruteForce(data: AnnotatedData, constraints: Constraints): Assignment[]
     }
     // debugger;
     // Remove possible duplicates
-    return bestAssignments.flat(2)/*.filter((assignment, i, arr) => i == arr.indexOf(assignment))*/;
+    return bestAssignments.flat(2).filter((assignment, i, arr) => i == arr.indexOf(assignment));
 }
 
 function* courseSizeGenerator(constraints: Pick<Constraints, "legalSizes" | "sum">) {

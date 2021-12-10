@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { importData } from "../collectAnnotatedData";
+  import { importAssignedData, importData } from "../collectAnnotatedData";
   import { createEventDispatcher, getContext } from "svelte";
   import LoadingSaveOptions from "./LoadingSaveOptions.svelte";
   import UploadButton from "./UploadButton.svelte";
+import LoadingAssignmentOptions from "./LoadingAssignmentOptions.svelte";
   const { open } = getContext("simple-modal");
   const dispatch = createEventDispatcher();
   let summary: HTMLElement;
@@ -16,7 +17,7 @@
     summary.click();
   }
 
-  function openJsonLoadOptions(
+  function openJsonSavefileLoadOptions(
     event: CustomEvent<{
       json: string;
       setDisabled: (disabled: boolean) => void;
@@ -24,6 +25,17 @@
   ) {
     const data = importData(event.detail.json);
     open(LoadingSaveOptions, { annotatedData: data });
+    event.detail.setDisabled(false);
+  }
+
+  function openJsonAssignmentLoadOptions(
+    event: CustomEvent<{
+      json: string;
+      setDisabled: (disabled: boolean) => void;
+    }>
+  ) {
+    const data = importAssignedData(event.detail.json);
+    open(LoadingAssignmentOptions, { assignmentData: data });
     event.detail.setDisabled(false);
   }
 </script>
@@ -41,9 +53,18 @@
   <p class="info-box">
     Wenn Sie nach Schritt 3 (Daten annotieren) die Möglichkeit genutzt haben,
     zwischenzuspeichern, können Sie die .json-Datei laden und fortfahren.
-    <UploadButton accept=".json" on:file-loaded={openJsonLoadOptions}
+    <br />
+    <UploadButton accept=".json" on:file-loaded={openJsonSavefileLoadOptions}
       >Zwischengespeicherte Daten importieren</UploadButton
     >
+  </p>
+  <p class="info-box">
+    Wenn Sie Kurszuteilungen gespeichert haben, können Sie die .json-Datei
+    importieren und fortfahren.
+    <br />
+    <UploadButton accept=".json" on:file-loaded={openJsonAssignmentLoadOptions}>
+      Kurszuteilungen laden
+    </UploadButton>
   </p>
 </details>
 

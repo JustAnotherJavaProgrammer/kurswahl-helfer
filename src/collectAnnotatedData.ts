@@ -1,3 +1,5 @@
+import type { AssignmentData } from "./assignCourses";
+
 export default function collect(rawData: string[][], choiceNos: number[]): AnnotatedData {
     const data: Partial<AnnotatedData> = { rawData: rawData, people: [] };
     data.choiceIndices = [];
@@ -41,8 +43,15 @@ function empty2DArray(length: number) {
 }
 
 export function exportData(data: AnnotatedData, fileName: string) {
-    const json = JSON.stringify({type: 0, data});
-    const blob = new Blob([json], { type: 'text/json;charset=utf-8;' });
+    exportToFile(JSON.stringify({type: 0, data}), fileName);
+}
+
+export function exportAssignedData(data: AssignmentData, fileName: string) {
+    exportToFile(JSON.stringify({type: 1, data}), fileName);
+}
+
+export function exportToFile(text: string, fileName: string, type = 'text/json;charset=utf-16;') {
+    const blob = new Blob([text], { type });
     const url = URL.createObjectURL(blob);
     triggerDownload(url, fileName);
     URL.revokeObjectURL(url);
@@ -58,6 +67,13 @@ export function triggerDownload(url: string, fileName: string) {
 export function importData(json: string): AnnotatedData {
     const data = JSON.parse(json) as {type: number, data: AnnotatedData};
     if (data.type != 0)
+        throw new Error('Invalid file type');
+    return data.data;
+}
+
+export function importAssignedData(json: string): AssignmentData {
+    const data = JSON.parse(json) as {type: number, data: AssignmentData};
+    if (data.type != 1)
         throw new Error('Invalid file type');
     return data.data;
 }

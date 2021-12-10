@@ -1,23 +1,24 @@
 <script lang="ts">
     import type { AppContext } from "src/App.svelte";
+    import type { AssignmentData } from "src/assignCourses";
     import type { AnnotatedData } from "src/collectAnnotatedData";
     import { getContext } from "svelte";
 
-    const { goToOptions, startAssignment } = getContext(
+    const { goToOptions, showResults } = getContext(
         "kurswahl-helfer-triggers"
     ) as AppContext;
     const { close } = getContext("simple-modal");
 
-    export let annotatedData: AnnotatedData;
+    export let assignmentData: AssignmentData;
 
     function options() {
         close();
-        goToOptions(annotatedData.rawData);
+        goToOptions(assignmentData.rawData);
     }
 
-    function assign() {
+    function view() {
         close();
-        startAssignment(annotatedData);
+        showResults(assignmentData);
     }
 </script>
 
@@ -25,16 +26,13 @@
     <h1>Wie möchten Sie fortfahren?</h1>
     <p>
         Die Daten wurden erfolgreich geladen. Sie haben nun die Möglichkeit, die
-        bereits vorgenommenen Einstellungen aus Schritt 3 (Daten annotieren) zu
-        verwerfen und dort zu beginnen, oder die Zuteilung der Kurse mit den
-        gespeicherten Einstellungen jetzt zu starten.<br />
-        Die Zuteilung der Kurse kann einige Zeit in Anspruch nehmen.
+        Rohdaten erneut zu verarbeiten und von vorn zu beginnen oder die bereits
+        berechneten Kurszuteilungen jetzt anzuzeigen.
     </p>
-    <b>Möchten Sie Ihre Einstellungen beibehalten?</b>
+    <b>Möchten Sie die Kurszuteilungen anzeigen?</b>
     <p class="button-list">
-        <button on:click={options}>Erneut konfigurieren</button
-        >
-        <button class="btn-right" on:click={assign}>Kurse zuteilen</button>
+        <button on:click={options}>Erneut konfigurieren</button>
+        <button class="btn-right" on:click={view}>Zuteilungen anzeigen</button>
     </p>
 </section>
 

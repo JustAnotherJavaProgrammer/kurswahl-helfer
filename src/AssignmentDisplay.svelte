@@ -2,7 +2,8 @@
     import { createEventDispatcher } from "svelte";
 
     import type { AssignmentData } from "./assignCourses";
-    import AssignmentProgress from "./lib/AssignmentProgress.svelte";
+    import { exportAssignedData, exportToFile } from "./collectAnnotatedData";
+    import { exportToCsv } from "./csvParser";
     import AssignmentQualityDisplay from "./lib/AssignmentQualityDisplay.svelte";
 
     const dispatch = createEventDispatcher();
@@ -27,6 +28,32 @@
 
     function changeColumnVisibility(column: number, visible: boolean) {
         columnVisible[column] = visible;
+    }
+
+    function saveAllJson() {
+        exportAssignedData(
+            assignmentData,
+            "Kurszuteilungen_Kurswahl-Helfer.json"
+        );
+    }
+
+    function exportCsv() {
+        exportToFile(
+            "\ufeff" +
+                exportToCsv(
+                    assignmentData,
+                    assignmentNo,
+                    columnVisible,
+                    courseOrder,
+                    studentOrder
+                ),
+            `Kurszuteilung${
+                assignmentData.assignments.length > 1
+                    ? "_" + (assignmentNo + 1)
+                    : ""
+            }.csv`,
+            "text/csv;charset=utf-8;"
+        );
     }
 
     let courseSortBy: 0 | 1;
@@ -82,12 +109,21 @@
     {:else}
         <nav class="assignment-list">
             {#if assignmentNo >= 0}
-            <button class="btn-left" value={-1} on:click={setAssignment}>
-                Zurück
-            </button>
+                <button class="btn-left" value={-1} on:click={setAssignment}>
+                    Zurück
+                </button>
             {/if}
-            <button class="btn-home" on:click={goToHome}>Zurück zum Start</button>
-            <button disabled>Zuteilungen speichern</button>
+            <button class="btn-home" on:click={goToHome}
+                >Zurück zum Start</button
+            >
+            <button class="btn-save" on:click={saveAllJson}
+                >Zuteilungen speichern</button
+            >
+            {#if assignmentNo >= 0}
+                <button class="btn-save" on:click={exportCsv}
+                    >Zuteilung als .csv-Datei exportieren</button
+                >
+            {/if}
         </nav>
         {#if assignmentNo < 0}
             <p class="info-box">

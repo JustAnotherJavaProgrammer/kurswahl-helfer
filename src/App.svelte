@@ -2,6 +2,7 @@
   export type AppContext = {
     startAssignment: (data: AnnotatedData) => void;
     goToOptions: (raw: string[][]) => void;
+    showResults: (data: AssignmentData) => void;
   };
 </script>
 
@@ -73,9 +74,13 @@
     state = 4;
   }
 
-  function showResults(event: CustomEvent<AssignmentData>) {
+  function showResultsHandler(event: CustomEvent<AssignmentData>) {
+    showResults(event.detail);
+  }
+
+  function showResults(data: AssignmentData) {
     rawData = null;
-    assignedData = event.detail;
+    assignedData = data;
     state = 5;
     annotatedData = null;
   }
@@ -87,6 +92,7 @@
       annotatedData = null;
       state = 3;
     },
+    showResults
   });
 </script>
 
@@ -114,7 +120,7 @@
         </div>
       {:else if state < 5}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
-          <AssignmentProgress data={annotatedData} on:done={showResults} />
+          <AssignmentProgress data={annotatedData} on:done={showResultsHandler} />
         </div>
       {:else if state < 6}
         <div in:fly={transitionInOptions} out:fly={transitionOutOptions}>
@@ -208,7 +214,7 @@
     transition: all 0.2s;
   }
 
-  :global(.btn-right::after, .btn-upload::after, .btn-left::before, .btn-home::before, details
+  :global(.btn-right::after, .btn-upload::after, .btn-left::before, .btn-home::before, .btn-save::before, details
       > summary.btn::before, details > summary .btn::before, details
       > summary
       button::before) {
@@ -221,7 +227,7 @@
     margin-left: 0.5em;
   }
 
-  :global(.btn-left::before, .btn-home::before, details
+  :global(.btn-left::before, .btn-home::before, .btn-save::before, details
       > summary.btn::before, details > summary .btn::before, details
       > summary
       button::before) {
@@ -242,6 +248,10 @@
 
   :global(.btn-upload::after) {
     content: "\e2c6";
+  }
+
+  :global(.btn-save::before) {
+    content: "\e161";
   }
 
   :global(details > summary.btn::before, details > summary .btn::before, details
