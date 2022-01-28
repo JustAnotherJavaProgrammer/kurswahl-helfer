@@ -96,8 +96,8 @@
   });
 </script>
 
+<Navbar />
 <main>
-  <Navbar />
   <Modal>
     <article class="content">
       {#if state < 1}
